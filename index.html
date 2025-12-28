@@ -47,6 +47,24 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 8px;
+            display: inline-block;
+        }
+
         /* SELEZIONE MESE/ANNO EVIDENTE */
         .selezione-evidente {
             background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
@@ -120,7 +138,7 @@
         /* NUOVA RIGA PER STATISTICHE EDITABILI */
         .statistiche-riga {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* Cambiato a 4 colonne */
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             margin-top: 25px;
         }
@@ -744,7 +762,7 @@
             }
 
             .statistiche-riga {
-                grid-template-columns: 1fr; /* Su mobile torna a una colonna */
+                grid-template-columns: 1fr;
                 gap: 15px;
             }
 
@@ -1089,6 +1107,12 @@
             document.getElementById('anno').value = appState.anno;
             document.getElementById('mese').value = appState.mese;
             
+            // Azzera gli input statistiche all'avvio
+            document.getElementById('turniOrdinariInput').value = 0;
+            document.getElementById('turniCongedoInput').value = 0;
+            document.getElementById('alpiMinInput').value = 0;
+            document.getElementById('alpiMaxInput').value = 0;
+            
             inizializzaTurniFissiTable();
             aggiornaVetoCalendario();
             generaCalendario();
@@ -1224,36 +1248,43 @@
 
         // ============ NUOVE STATISTICHE ============
         function aggiornaStatistiche() {
-            // Calcola turni ordinari (fissi)
+            // Calcola turni ordinari (fissi) - M=1, P=1, N=2
             const giorniNelMese = getGiorniNelMese(appState.mese, appState.anno);
             let turniOrdinari = 0;
+            let countVeto = 0;
             
-            // Conta turni fissi settimanali e moltiplica per numero di settimane
-            const fissiCheckboxes = document.querySelectorAll('#turniFissiTable input[type="checkbox"]:checked');
-            const turniPerSettimana = fissiCheckboxes.length;
+            // Conta turni fissi per ogni giorno del mese dal calendario effettivo
+            Object.keys(appState.calendarioStati).forEach(giorno => {
+                turniTipo.forEach(turno => {
+                    const stato = appState.calendarioStati[giorno][turno];
+                    if (stato === 'obbligato') {
+                        // Notte conta 2, Mattina e Pomeriggio contano 1
+                        turniOrdinari += (turno === 'N') ? 2 : 1;
+                    }
+                    if (stato === 'veto') {
+                        // Notte conta 2, Mattina e Pomeriggio contano 1
+                        countVeto += (turno === 'N') ? 2 : 1;
+                    }
+                });
+            });
             
-            // Calcola numero di settimane nel mese (approssimativo)
-            const settimaneNelMese = Math.ceil(giorniNelMese / 7);
-            turniOrdinari = turniPerSettimana * settimaneNelMese;
-            
-            // Calcola turni congedo
-            const turniCongedo = appState.congedi.length * 3;
+            // Calcola turni congedo - ogni giorno di congedo = 4 turni (M=1, P=1, N=2)
+            const turniCongedo = appState.congedi.length * 4;
             
             // Calcola ALPI Min/Max
-            const turniTotaliMese = giorniNelMese * 3;
-            const countFissi = parseInt(document.getElementById('countFissi').textContent) || 0;
-            const countVeto = parseInt(document.getElementById('countVeto').textContent) || 0;
+            // Totale turni mese = giorni * 4 (M=1, P=1, N=2 per ogni giorno)
+            const turniTotaliMese = giorniNelMese * 4;
             
             // Turni disponibili = totali - fissi - veto - congedo
-            const turniDisponibili = turniTotaliMese - countFissi - countVeto - turniCongedo;
+            const turniDisponibili = turniTotaliMese - turniOrdinari - countVeto - turniCongedo;
             
             // Minimo = turni fissi (obbligatori)
-            const alpiMin = countFissi;
+            const alpiMin = turniOrdinari;
             
             // Massimo = turni fissi + turni disponibili
-            const alpiMax = countFissi + turniDisponibili;
+            const alpiMax = turniOrdinari + turniDisponibili;
             
-            // Aggiorna UI - SOLO se i campi non sono in focus (non stanno venendo modificati)
+            // Aggiorna UI statistiche editabili - SOLO se i campi non sono in focus (non stanno venendo modificati)
             const turniOrdinariInput = document.getElementById('turniOrdinariInput');
             const turniCongedoInput = document.getElementById('turniCongedoInput');
             const alpiMinInput = document.getElementById('alpiMinInput');
@@ -1274,6 +1305,9 @@
             if (!alpiMaxInput.matches(':focus')) {
                 alpiMaxInput.value = alpiMax;
             }
+            
+            // Aggiorna il riepilogo
+            aggiornaRiepilogo();
         }
 
         // ============ VETO CALENDARIO ============
@@ -1659,8 +1693,14 @@
             Object.keys(appState.calendarioStati).forEach(giorno => {
                 turniTipo.forEach(turno => {
                     const stato = appState.calendarioStati[giorno][turno];
-                    if (stato === 'obbligato') countFissi++;
-                    if (stato === 'veto') countVeto++;
+                    if (stato === 'obbligato') {
+                        // Notte conta 2, altri contano 1
+                        countFissi += (turno === 'N') ? 2 : 1;
+                    }
+                    if (stato === 'veto') {
+                        // Notte conta 2, altri contano 1
+                        countVeto += (turno === 'N') ? 2 : 1;
+                    }
                 });
             });
             
@@ -1840,7 +1880,7 @@
             document.getElementById('turniOrdinariInput').value = 0;
             document.getElementById('turniCongedoInput').value = 0;
             document.getElementById('alpiMinInput').value = 0;
-            document.getElementById('alpiMaxInput').value = 0; // MODIFICATO: parte da 0
+            document.getElementById('alpiMaxInput').value = 0;
             
             // Reset state
             appState.congedi = [];
