@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Preferenze Turni Medici v3.0 - Tasti Grandi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 2.8em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* SELEZIONE MESE/ANNO EVIDENTE */
+        .selezione-evidente {
+            background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            border: 5px solid #fff;
+        }
+
+        .selezione-evidente h2 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .selezione-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .selezione-item {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .selezione-item label {
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .selezione-item input,
+        .selezione-item select {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #16a085;
+            border-radius: 8px;
+            font-size: 1.3em;
+            font-weight: bold;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .selezione-item input:focus,
+        .selezione-item select:focus {
+            outline: none;
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.2);
+            transform: scale(1.02);
+        }
+
+        .selezione-item input {
+            font-size: 1.4em;
+            height: 60px;
+        }
+
+        .selezione-item select {
+            height: 60px;
+            cursor: pointer;
+        }
+
+        /* NUOVA RIGA PER STATISTICHE EDITABILI */
+        .statistiche-riga {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Cambiato a 4 colonne */
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .statistica-box {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 3px solid #3498db;
+        }
+
+        .statistica-box h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Stile per input editabili nelle statistiche */
+        .valore-editabile {
+            font-size: 2.5em !important;
+            font-weight: bold !important;
+            color: #2c3e50 !important;
+            border: 3px solid #3498db !important;
+            border-radius: 8px !important;
+            background: white !important;
+            padding: 10px !important;
+            text-align: center !important;
+            margin: 10px 0 !important;
+            transition: all 0.3s !important;
+            width: 120px !important;
+            display: inline-block !important;
+        }
+
+        .valore-editabile:focus {
+            border-color: #e74c3c !important;
+            box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.2) !important;
+            outline: none !important;
+            transform: scale(1.05) !important;
+        }
+
+        .statistica-box .sotto-valore {
+            font-size: 1em;
+            color: #7f8c8d;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        /* MODIFICA: SELECT TURNO VETO CON FONT SIZE RIDOTTO DEL 20% */
+        #turnoVetoInput {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.2em; /* Ridotto del 20% da 1.5em */
+            font-weight: bold;
+            height: 70px;
+            border: 4px solid #e74c3c;
+            border-radius: 10px;
+            background: white;
+            color: #e74c3c;
+        }
+
+        /* TURNI FISSI CON CHECKBOX GRANDI */
+        .turni-fissi-grid {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .turni-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .turni-table th,
+        .turni-table td {
+            border: 2px solid #ddd;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .turni-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .turni-table td {
+            background-color: white;
+            min-width: 150px;
+        }
+
+        .turni-table input[type="checkbox"] {
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            transform: scale(1.8);
+        }
+
+        /* VETO CALENDARIO */
+        .veto-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .veto-selector {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .veto-selector > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .veto-calendario-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            min-height: 180px;
+        }
+
+        .veto-giorno-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 5px;
+            background: white;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .veto-giorno-cell:hover {
+            background: #e3f2fd;
+            border-color: #2196F3;
+            transform: translateY(-3px);
+        }
+
+        .veto-giorno-cell.selected {
+            background: #e74c3c;
+            color: white;
+            border-color: #c0392b;
+            font-weight: bold;
+            transform: scale(1.05);
+        }
+
+        .veto-giorno-cell .numero {
+            font-weight: bold;
+            font-size: 1.3em;
+            margin-bottom: 3px;
+        }
+
+        .veto-giorno-cell .giorno-nome {
+            font-size: 0.85em;
+        }
+
+        .veto-giorno-cell.sabato {
+            background: #e8f4fd;
+            border-color: #64b5f6;
+        }
+
+        .veto-giorno-cell.domenica {
+            background: #fff3e0;
+            border-color: #ffb74d;
+        }
+
+        .veto-list {
+            margin-top: 15px;
+        }
+
+        .veto-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 6px solid #e74c3c;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        /* CONGEDI */
+        .congedo-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .congedo-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .congedo-row > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* MODIFICA: INPUT CONGEDO GRANDI */
+        .congedo-row input {
+            width: 100%;
+            padding: 20px;
+            border: 4px solid #9b59b6;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+            height: 70px;
+            color: #9b59b6;
+        }
+
+        .congedo-row input::placeholder {
+            color: #aaa;
+            font-weight: normal;
+        }
+
+        .congedo-list {
+            margin-top: 15px;
+        }
+
+        .congedo-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 6px solid #9b59b6;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        /* CALENDARIO PRINCIPALE */
+        .calendario {
+            overflow-x: auto;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .calendario-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        .calendario-table th {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .calendario-table td {
+            border: 2px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            min-height: 80px;
+            vertical-align: top;
+            background: white;
+        }
+
+        .day-cell {
+            transition: all 0.2s;
+        }
+
+        .day-cell:hover {
+            background-color: #f0f8ff;
+        }
+
+        .day-number {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 1.2em;
+            background: #ecf0f1;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .turno-row {
+            display: flex;
+            justify-content: space-around;
+            margin: 5px 0;
+        }
+
+        .turno-cella {
+            width: 40px;
+            height: 35px;
+            border: 3px solid #ddd;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 20px;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .turno-cella:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .turno-cella.obbligato {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            border-color: #d68910;
+        }
+
+        .turno-cella.veto {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border-color: #a93226;
+        }
+
+        .turno-cella.congedo {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            border-color: #7d3c98;
+        }
+
+        .empty-cell {
+            background-color: #ecf0f1;
+        }
+
+        /* RIEPILOGO */
+        .riepilogo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .riepilogo-item {
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            border: 4px solid transparent;
+        }
+
+        .riepilogo-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+        }
+
+        .riepilogo-item.fissi {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border-color: #f39c12;
+        }
+
+        .riepilogo-item.veto {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border-color: #e74c3c;
+        }
+
+        .riepilogo-item.congedo {
+            background: linear-gradient(135deg, #e8daef 0%, #d7bde2 100%);
+            border-color: #9b59b6;
+        }
+
+        .riepilogo-item h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+
+        .riepilogo-item .count {
+            font-size: 3.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        /* LEGENDA */
+        .legenda {
+            display: flex;
+            gap: 25px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            justify-content: center;
+        }
+
+        .legenda-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        .legenda-icon {
+            width: 40px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 20px;
+            border: 3px solid #ddd;
+        }
+
+        /* TASTI GRANDI A PROVA DI DEMENTE */
+        .tasti-grandi-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border: 5px solid #fff;
+        }
+
+        .tasto-grande {
+            padding: 35px 25px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.8em;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            transition: all 0.3s;
+            text-align: center;
+            min-height: 180px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tasto-grande::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: rgba(255,255,255,0.5);
+        }
+
+        .tasto-grande:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+
+        .tasto-grande:active {
+            transform: translateY(-5px) scale(0.98);
+        }
+
+        .tasto-grande .icona {
+            font-size: 2.5em;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .tasto-grande .testo {
+            font-size: 1.1em;
+            line-height: 1.4;
+        }
+
+        .tasto-grande .subtesto {
+            font-size: 0.7em;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        .tasto-genera {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: 5px solid #1d6fa5;
+        }
+
+        .tasto-whatsapp {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            border: 5px solid #0da55e;
+        }
+
+        .tasto-reset {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: 5px solid #a82315;
+        }
+
+        .tasto-email {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            border: 5px solid #6c3483;
+        }
+
+        /* BOTTONI AGGIUNGI */
+        .bottone-aggiungi {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            padding: 25px 30px;
+            border: 5px solid #1e8449;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.8em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            transition: all 0.3s;
+            min-width: 250px;
+            min-height: 90px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .bottone-aggiungi:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+
+        /* JSON AREA */
+        .json-area {
+            margin-top: 30px;
+            padding: 20px;
+            background: #2c3e50;
+            border-radius: 10px;
+        }
+
+        .json-area h3 {
+            color: white;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 350px;
+            padding: 20px;
+            border: 3px solid #3498db;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            background: #1a252f;
+            color: #ecf0f1;
+            line-height: 1.5;
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+            font-weight: bold;
+            font-size: 1.1em;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+            border: 3px solid #fff;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .selezione-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .statistiche-riga {
+                grid-template-columns: 1fr; /* Su mobile torna a una colonna */
+                gap: 15px;
+            }
+
+            .valore-editabile {
+                width: 100px !important;
+                font-size: 2em !important;
+            }
+
+            .tasti-grandi-container {
+                grid-template-columns: 1fr;
+            }
+
+            .tasto-grande {
+                padding: 25px 15px;
+                font-size: 1.5em;
+                min-height: 150px;
+            }
+
+            .veto-calendario-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .veto-giorno-cell {
+                padding: 8px 4px;
+                min-height: 60px;
+            }
+
+            .veto-giorno-cell .numero {
+                font-size: 1.1em;
+            }
+
+            .veto-giorno-cell .giorno-nome {
+                font-size: 0.75em;
+            }
+
+            .turno-cella {
+                width: 35px;
+                height: 30px;
+                font-size: 16px;
+            }
+
+            .calendario-table th,
+            .calendario-table td {
+                padding: 8px;
+            }
+
+            .bottone-aggiungi {
+                padding: 20px;
+                font-size: 1.5em;
+                min-height: 80px;
+            }
+            
+            .turni-table th,
+            .turni-table td {
+                padding: 15px;
+            }
+            
+            .turni-table input[type="checkbox"] {
+                transform: scale(1.3);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tasto-grande {
+                padding: 20px 10px;
+                font-size: 1.3em;
+            }
+            
+            .tasto-grande .icona {
+                font-size: 2em;
+            }
+            
+            .veto-calendario-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .bottone-aggiungi {
+                font-size: 1.3em;
+                min-height: 70px;
+            }
+            
+            .valore-editabile {
+                width: 80px !important;
+                font-size: 1.8em !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 GESTIONE TURNI MEDICI</h1>
+        <p class="subtitle">Sistema avanzato per la gestione delle disponibilità - Versione 3.0</p>
+
+        <!-- SELEZIONE EVIDENTE MESE/ANNO -->
+        <div class="selezione-evidente">
+            <h2>📅 SELEZIONA IL PERIODO</h2>
+            <div class="selezione-grid">
+                <div class="selezione-item">
+                    <label for="nomeMedico">👨‍⚕️ NOME MEDICO *</label>
+                    <input type="text" id="nomeMedico" placeholder="Inserisci nome e cognome" required>
+                </div>
+                <div class="selezione-item">
+                    <label for="mese">🗓️ MESE</label>
+                    <select id="mese">
+                        <option value="1">GENNAIO</option>
+                        <option value="2">FEBBRAIO</option>
+                        <option value="3">MARZO</option>
+                        <option value="4">APRILE</option>
+                        <option value="5">MAGGIO</option>
+                        <option value="6">GIUGNO</option>
+                        <option value="7">LUGLIO</option>
+                        <option value="8">AGOSTO</option>
+                        <option value="9">SETTEMBRE</option>
+                        <option value="10">OTTOBRE</option>
+                        <option value="11">NOVEMBRE</option>
+                        <option value="12">DICEMBRE</option>
+                    </select>
+                </div>
+                <div class="selezione-item">
+                    <label for="anno">📅 ANNO</label>
+                    <input type="number" id="anno" min="2024" max="2030" value="2024">
+                </div>
+            </div>
+            
+            <!-- NUOVA RIGA STATISTICHE EDITABILI - MODIFICATA CON 4 COLONNE -->
+            <div class="statistiche-riga">
+                <div class="statistica-box">
+                    <h3>📊 TURNI ORDINARI</h3>
+                    <input type="number" class="valore-editabile" id="turniOrdinariInput" value="0" min="0" max="99" 
+                           onchange="aggiornaStatisticheDaInput()">
+                    <div class="sotto-valore">Turni obbligatori fissi</div>
+                </div>
+                <div class="statistica-box">
+                    <h3>🏖️ TURNI CONGEDO</h3>
+                    <input type="number" class="valore-editabile" id="turniCongedoInput" value="0" min="0" max="99"
+                           onchange="aggiornaStatisticheDaInput()">
+                    <div class="sotto-valore">Giorni congedo * 3 turni</div>
+                </div>
+                <!-- MODIFICA: SEPARATO IN DUE BOX DIVERSI -->
+                <div class="statistica-box">
+                    <h3>📉 ALPI MIN</h3>
+                    <input type="number" class="valore-editabile" id="alpiMinInput" value="0" min="0" max="99"
+                           onchange="aggiornaAlpiRange()">
+                    <div class="sotto-valore">Minimo turni</div>
+                </div>
+                <div class="statistica-box">
+                    <h3>📈 ALPI MAX</h3>
+                    <input type="number" class="valore-editabile" id="alpiMaxInput" value="0" min="0" max="99"
+                           onchange="aggiornaAlpiRange()">
+                    <div class="sotto-valore">Massimo turni</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TURNI FISSI -->
+        <div class="section">
+            <h2>◆ TURNI FISSI (Obbligatori Ricorrenti)</h2>
+            <p style="margin-bottom: 15px; color: #7f8c8d;">Seleziona i turni fissi che si ripetono ogni settimana</p>
+            <div class="turni-fissi-grid">
+                <table class="turni-table" id="turniFissiTable">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 150px;">GIORNO</th>
+                            <th>MATTINA (M)</th>
+                            <th>POMERIGGIO (P)</th>
+                            <th>NOTTE (N)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TURNI NON DISPONIBILI (VETO) -->
+        <div class="section">
+            <h2>⛔ TURNI NON DISPONIBILI (Veto)</h2>
+            <p style="margin-bottom: 15px; color: #7f8c8d;">
+                Seleziona giorni specifici dal calendario corrente in cui NON sei disponibile
+            </p>
+            
+            <div class="veto-input-area">
+                <div class="veto-selector">
+                    <div style="flex: 2;">
+                        <label>🗓️ SELEZIONA GIORNO DAL CALENDARIO</label>
+                        <div id="vetoCalendario" class="veto-calendario-grid"></div>
+                    </div>
+                    <div style="flex: 0.5;">
+                        <label for="turnoVetoInput">⏰ SELEZIONA TURNO</label>
+                        <!-- MODIFICA: FONT SIZE RIDOTTO DEL 20% -->
+                        <select id="turnoVetoInput">
+                            <option value="M">MATTINA (M)</option>
+                            <option value="P">POMERIGGIO (P)</option>
+                            <option value="N">NOTTE (N)</option>
+                        </select>
+                    </div>
+                    <button class="bottone-aggiungi" onclick="aggiungiVetoSpecifico()">
+                        <span style="font-size: 1.5em;">➕</span>
+                        <span>AGGIUNGI VETO</span>
+                    </button>
+                </div>
+                
+                <div class="veto-list" id="vetoList"></div>
+            </div>
+        </div>
+
+        <!-- CONGEDI -->
+        <div class="section">
+            <h2>🏖️ CONGEDI ORDINARI</h2>
+            <p style="margin-bottom: 15px; color: #7f8c8d;">Inserisci i giorni di congedo (Reor, FS, CO, Permessi)</p>
+            
+            <div class="congedo-input-area">
+                <div class="congedo-row">
+                    <div>
+                        <label for="tipoCongedoInput">📋 TIPO CONGEDO</label>
+                        <input type="text" id="tipoCongedoInput" placeholder="es: Reor, FS, CO, Permesso">
+                    </div>
+                    <div>
+                        <label for="giornoCongedoInput">📅 GIORNO (1-31)</label>
+                        <input type="number" id="giornoCongedoInput" min="1" max="31" placeholder="Giorno">
+                    </div>
+                    <button class="bottone-aggiungi" onclick="aggiungiCongedo()">
+                        <span style="font-size: 1.5em;">➕</span>
+                        <span>AGGIUNGI CONGEDO</span>
+                    </button>
+                </div>
+                
+                <div class="congedo-list" id="congedoList"></div>
+            </div>
+        </div>
+
+        <!-- CALENDARIO -->
+        <div class="section">
+            <h2>📅 CALENDARIO MENSILE INTERATTIVO</h2>
+            <p style="margin-bottom: 15px; color: #7f8c8d;">
+                Clicca sulle celle per cambiare stato manualmente
+            </p>
+            
+            <div class="legenda">
+                <div class="legenda-item">
+                    <div class="legenda-icon" style="background-color: white;"></div>
+                    <span>VUOTO (Disponibile)</span>
+                </div>
+                <div class="legenda-item">
+                    <div class="legenda-icon obbligato">◆</div>
+                    <span>OBBLIGATO (Turno Fisso)</span>
+                </div>
+                <div class="legenda-item">
+                    <div class="legenda-icon veto">⛔</div>
+                    <span>VETO (Non Disponibile)</span>
+                </div>
+                <div class="legenda-item">
+                    <div class="legenda-icon congedo">🏖️</div>
+                    <span>CONGEDO (Assente)</span>
+                </div>
+            </div>
+
+            <div class="calendario" id="calendarioContainer"></div>
+        </div>
+
+        <!-- RIEPILOGO -->
+        <div class="section">
+            <h2>📊 RIEPILOGO STATISTICHE</h2>
+            <div class="riepilogo">
+                <div class="riepilogo-item fissi">
+                    <h3>TURNI FISSI/OBBLIGATI</h3>
+                    <div class="count" id="countFissi">0</div>
+                </div>
+                <div class="riepilogo-item veto">
+                    <h3>TURNI VETO</h3>
+                    <div class="count" id="countVeto">0</div>
+                </div>
+                <div class="riepilogo-item congedo">
+                    <h3>GIORNI CONGEDO</h3>
+                    <div class="count" id="countCongedo">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TASTI GRANDI A PROVA DI DEMENTE -->
+        <div class="tasti-grandi-container">
+            <button class="tasto-grande tasto-genera" onclick="generaCodice()">
+                <span class="icona">📄</span>
+                <span class="testo">GENERA CODICE DA INVIARE</span>
+                <span class="subtesto">Crea il file con tutte le tue disponibilità</span>
+            </button>
+            
+            <button class="tasto-grande tasto-whatsapp" onclick="copiaSuWhatsApp()">
+                <span class="icona">📱</span>
+                <span class="testo">COPIA SU WHATSAPP</span>
+                <span class="subtesto">Copia il testo e incollalo su WhatsApp</span>
+            </button>
+            
+            <button class="tasto-grande tasto-email" onclick="inviaViaEmail()">
+                <span class="icona">✉️</span>
+                <span class="testo">INVIA VIA EMAIL</span>
+                <span class="subtesto">Apre il client email con il testo</span>
+            </button>
+            
+            <button class="tasto-grande tasto-reset" onclick="resetTutto()">
+                <span class="icona">🔄</span>
+                <span class="testo">RESET DI TUTTO</span>
+                <span class="subtesto">Cancella tutte le impostazioni</span>
+            </button>
+        </div>
+
+        <!-- AREA CODICE -->
+        <div class="json-area">
+            <h3>📋 CODICE GENERATO</h3>
+            <textarea id="jsonOutput" readonly placeholder="Qui apparirà il codice da inviare..."></textarea>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============ VARIABILI GLOBALI ============
+        const giorniSettimana = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
+        const giorniSettimanaCompleti = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+        const giorniSettimanaBrevi = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM'];
+        const turniTipo = ['M', 'P', 'N'];
+        
+        let appState = {
+            medico: '',
+            mese: new Date().getMonth() + 1,
+            anno: new Date().getFullYear(),
+            calendarioStati: {},
+            turniFissi: {},
+            veto: {},
+            vetoSpecifici: [],
+            congedi: []
+        };
+
+        let giornoSelezionatoVeto = null;
+        let codiceGenerato = '';
+
+        // ============ INIZIALIZZAZIONE ============
+        document.addEventListener('DOMContentLoaded', function() {
+            const oggi = new Date();
+            appState.anno = oggi.getFullYear();
+            appState.mese = oggi.getMonth() + 1;
+            
+            document.getElementById('anno').value = appState.anno;
+            document.getElementById('mese').value = appState.mese;
+            
+            inizializzaTurniFissiTable();
+            aggiornaVetoCalendario();
+            generaCalendario();
+            
+            // Event listeners per selezione evidente
+            document.getElementById('mese').addEventListener('change', function() {
+                appState.mese = parseInt(this.value);
+                handleMeseChange();
+                this.style.borderColor = '#e74c3c';
+                setTimeout(() => this.style.borderColor = '#16a085', 1000);
+            });
+            
+            document.getElementById('anno').addEventListener('change', function() {
+                appState.anno = parseInt(this.value);
+                handleAnnoChange();
+                this.style.borderColor = '#e74c3c';
+                setTimeout(() => this.style.borderColor = '#16a085', 1000);
+            });
+            
+            document.getElementById('nomeMedico').addEventListener('input', function() {
+                appState.medico = this.value;
+                this.style.borderColor = '#e74c3c';
+                setTimeout(() => this.style.borderColor = '#16a085', 1000);
+            });
+            
+            // Shortcut Ctrl+S per salvare
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    generaCodice();
+                }
+                if (e.ctrlKey && e.key === 'r') {
+                    e.preventDefault();
+                    resetTutto();
+                }
+            });
+        });
+
+        // ============ FUNZIONI UTILITÀ ============
+        function getGiorniNelMese(mese, anno) {
+            return new Date(anno, mese, 0).getDate();
+        }
+
+        function getGiornoSettimana(giorno, mese, anno) {
+            const data = new Date(anno, mese - 1, giorno);
+            const giornoSettimana = data.getDay();
+            return giornoSettimana === 0 ? 6 : giornoSettimana - 1;
+        }
+
+        function getNomeGiornoSettimana(giorno, mese, anno) {
+            const index = getGiornoSettimana(giorno, mese, anno);
+            return giorniSettimana[index];
+        }
+
+        function getNomeGiornoBreve(giorno, mese, anno) {
+            const index = getGiornoSettimana(giorno, mese, anno);
+            return giorniSettimanaBrevi[index];
+        }
+
+        function mostraToast(messaggio, tipo = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = messaggio;
+            
+            switch(tipo) {
+                case 'success':
+                    toast.style.background = 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)';
+                    break;
+                case 'error':
+                    toast.style.background = 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)';
+                    break;
+                case 'warning':
+                    toast.style.background = 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)';
+                    break;
+                case 'info':
+                    toast.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
+                    break;
+            }
+            
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 4000);
+        }
+
+        // ============ FUNZIONI PER MODIFICA MANUALE STATISTICHE ============
+        function aggiornaStatisticheDaInput() {
+            // Leggi i valori dagli input
+            const turniOrdinari = parseInt(document.getElementById('turniOrdinariInput').value) || 0;
+            const turniCongedo = parseInt(document.getElementById('turniCongedoInput').value) || 0;
+            const alpiMin = parseInt(document.getElementById('alpiMinInput').value) || 0;
+            const alpiMax = parseInt(document.getElementById('alpiMaxInput').value) || 0;
+            
+            // Aggiorna i contatori nei riepiloghi
+            document.getElementById('countFissi').textContent = turniOrdinari;
+            const giorniCongedo = Math.floor(turniCongedo / 3);
+            document.getElementById('countCongedo').textContent = giorniCongedo > 0 ? giorniCongedo : 0;
+            
+            // Mostra conferma
+            mostraToast('📊 Statistiche aggiornate manualmente!', 'info');
+        }
+
+        function aggiornaAlpiRange() {
+            const alpiMin = parseInt(document.getElementById('alpiMinInput').value) || 0;
+            const alpiMax = parseInt(document.getElementById('alpiMaxInput').value) || 0;
+            
+            // Assicurati che il minimo non sia maggiore del massimo
+            if (alpiMin > alpiMax) {
+                document.getElementById('alpiMaxInput').value = alpiMin;
+                mostraToast('⚠️ Il minimo non può essere maggiore del massimo! Automaticamente corretto.', 'warning');
+            }
+        }
+
+        // ============ GESTIONE TABELLE ============
+        function inizializzaTurniFissiTable() {
+            const tbody = document.querySelector('#turniFissiTable tbody');
+            tbody.innerHTML = '';
+            
+            giorniSettimanaCompleti.forEach((giorno, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${giorno}</strong></td>
+                    <td><input type="checkbox" data-tipo="fisso" data-giorno="${giorniSettimana[index]}" data-turno="M" 
+                           onchange="sincronizzaCalendario(); aggiornaStatistiche()"></td>
+                    <td><input type="checkbox" data-tipo="fisso" data-giorno="${giorniSettimana[index]}" data-turno="P" 
+                           onchange="sincronizzaCalendario(); aggiornaStatistiche()"></td>
+                    <td><input type="checkbox" data-tipo="fisso" data-giorno="${giorniSettimana[index]}" data-turno="N" 
+                           onchange="sincronizzaCalendario(); aggiornaStatistiche()"></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // ============ NUOVE STATISTICHE ============
+        function aggiornaStatistiche() {
+            // Calcola turni ordinari (fissi)
+            const giorniNelMese = getGiorniNelMese(appState.mese, appState.anno);
+            let turniOrdinari = 0;
+            
+            // Conta turni fissi settimanali e moltiplica per numero di settimane
+            const fissiCheckboxes = document.querySelectorAll('#turniFissiTable input[type="checkbox"]:checked');
+            const turniPerSettimana = fissiCheckboxes.length;
+            
+            // Calcola numero di settimane nel mese (approssimativo)
+            const settimaneNelMese = Math.ceil(giorniNelMese / 7);
+            turniOrdinari = turniPerSettimana * settimaneNelMese;
+            
+            // Calcola turni congedo
+            const turniCongedo = appState.congedi.length * 3;
+            
+            // Calcola ALPI Min/Max
+            const turniTotaliMese = giorniNelMese * 3;
+            const countFissi = parseInt(document.getElementById('countFissi').textContent) || 0;
+            const countVeto = parseInt(document.getElementById('countVeto').textContent) || 0;
+            
+            // Turni disponibili = totali - fissi - veto - congedo
+            const turniDisponibili = turniTotaliMese - countFissi - countVeto - turniCongedo;
+            
+            // Minimo = turni fissi (obbligatori)
+            const alpiMin = countFissi;
+            
+            // Massimo = turni fissi + turni disponibili
+            const alpiMax = countFissi + turniDisponibili;
+            
+            // Aggiorna UI - SOLO se i campi non sono in focus (non stanno venendo modificati)
+            const turniOrdinariInput = document.getElementById('turniOrdinariInput');
+            const turniCongedoInput = document.getElementById('turniCongedoInput');
+            const alpiMinInput = document.getElementById('alpiMinInput');
+            const alpiMaxInput = document.getElementById('alpiMaxInput');
+            
+            if (!turniOrdinariInput.matches(':focus')) {
+                turniOrdinariInput.value = turniOrdinari;
+            }
+            
+            if (!turniCongedoInput.matches(':focus')) {
+                turniCongedoInput.value = turniCongedo;
+            }
+            
+            if (!alpiMinInput.matches(':focus')) {
+                alpiMinInput.value = alpiMin;
+            }
+            
+            if (!alpiMaxInput.matches(':focus')) {
+                alpiMaxInput.value = alpiMax;
+            }
+        }
+
+        // ============ VETO CALENDARIO ============
+        function aggiornaVetoCalendario() {
+            const container = document.getElementById('vetoCalendario');
+            container.innerHTML = '';
+            
+            const giorniNelMese = getGiorniNelMese(appState.mese, appState.anno);
+            const primoGiorno = new Date(appState.anno, appState.mese - 1, 1).getDay();
+            const primoGiornoCorretto = primoGiorno === 0 ? 6 : primoGiorno - 1;
+            
+            // Celle vuote per allineamento
+            for (let i = 0; i < primoGiornoCorretto; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'veto-giorno-cell';
+                emptyCell.style.visibility = 'hidden';
+                container.appendChild(emptyCell);
+            }
+            
+            // Giorni del mese
+            for (let giorno = 1; giorno <= giorniNelMese; giorno++) {
+                const giornoCell = document.createElement('div');
+                const nomeGiornoBreve = getNomeGiornoBreve(giorno, appState.mese, appState.anno);
+                const nomeGiornoCompleto = getNomeGiornoSettimana(giorno, appState.mese, appState.anno);
+                
+                let classi = 'veto-giorno-cell';
+                if (nomeGiornoCompleto === 'sab') {
+                    classi += ' sabato';
+                } else if (nomeGiornoCompleto === 'dom') {
+                    classi += ' domenica';
+                }
+                
+                if (giorno === giornoSelezionatoVeto) {
+                    classi += ' selected';
+                }
+                
+                giornoCell.className = classi;
+                giornoCell.innerHTML = `
+                    <div class="numero">${giorno}</div>
+                    <div class="giorno-nome">${nomeGiornoBreve}</div>
+                `;
+                giornoCell.title = `${giorniSettimanaCompleti[giorniSettimana.indexOf(nomeGiornoCompleto)]} ${giorno}`;
+                
+                giornoCell.onclick = () => selezionaGiornoVeto(giorno, giornoCell);
+                container.appendChild(giornoCell);
+            }
+            
+            aggiornaStatistiche();
+        }
+
+        function selezionaGiornoVeto(giorno, cell) {
+            document.querySelectorAll('.veto-giorno-cell').forEach(c => {
+                c.classList.remove('selected');
+            });
+            
+            cell.classList.add('selected');
+            giornoSelezionatoVeto = giorno;
+            
+            // Effetto visivo
+            cell.style.transform = 'scale(1.1)';
+            setTimeout(() => cell.style.transform = 'scale(1.05)', 200);
+        }
+
+        // ============ VETO SPECIFICI ============
+        function aggiungiVetoSpecifico() {
+            if (!giornoSelezionatoVeto) {
+                mostraToast('⚠️ SELEZIONA PRIMA UN GIORNO!', 'error');
+                return;
+            }
+            
+            const turno = document.getElementById('turnoVetoInput').value;
+            const nomeGiorno = getNomeGiornoSettimana(giornoSelezionatoVeto, appState.mese, appState.anno);
+            const nomeGiornoBreve = getNomeGiornoBreve(giornoSelezionatoVeto, appState.mese, appState.anno);
+            
+            const esistente = appState.vetoSpecifici.find(v => 
+                v.giorno === giornoSelezionatoVeto && v.turno === turno
+            );
+            
+            if (esistente) {
+                mostraToast('⚠️ VETO GIA PRESENTE!', 'error');
+                return;
+            }
+            
+            appState.vetoSpecifici.push({
+                giorno: giornoSelezionatoVeto,
+                turno: turno,
+                nomeGiorno: nomeGiorno,
+                nomeGiornoBreve: nomeGiornoBreve
+            });
+            
+            document.querySelectorAll('.veto-giorno-cell').forEach(c => c.classList.remove('selected'));
+            giornoSelezionatoVeto = null;
+            
+            aggiornaListaVeto();
+            sincronizzaCalendario();
+            aggiornaStatistiche();
+            mostraToast('✅ VETO AGGIUNTO!');
+        }
+
+        function rimuoviVetoSpecifico(index) {
+            appState.vetoSpecifici.splice(index, 1);
+            aggiornaListaVeto();
+            sincronizzaCalendario();
+            aggiornaStatistiche();
+            mostraToast('🗑️ VETO RIMOSSO!');
+        }
+
+        function aggiornaListaVeto() {
+            const container = document.getElementById('vetoList');
+            
+            if (appState.vetoSpecifici.length === 0) {
+                container.innerHTML = '<p style="color: #7f8c8d; font-style: italic; text-align: center; padding: 20px;">Nessun veto specifico inserito</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            appState.vetoSpecifici.forEach((veto, index) => {
+                const turnoNome = veto.turno === 'M' ? 'MATTINA' : veto.turno === 'P' ? 'POMERIGGIO' : 'NOTTE';
+                const item = document.createElement('div');
+                item.className = 'veto-item';
+                item.innerHTML = `
+                    <span style="font-size: 1.1em;">
+                        <strong style="color: #e74c3c;">${veto.nomeGiornoBreve} ${veto.giorno}</strong> - ${turnoNome}
+                    </span>
+                    <button class="tasto-reset" style="padding: 8px 15px; font-size: 0.9em;" 
+                            onclick="rimuoviVetoSpecifico(${index})">
+                        RIMUOVI
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // ============ CONGEDI ============
+        function aggiungiCongedo() {
+            const tipo = document.getElementById('tipoCongedoInput').value.trim().toUpperCase();
+            const giorno = parseInt(document.getElementById('giornoCongedoInput').value);
+            
+            if (!tipo) {
+                mostraToast('⚠️ INSERISCI IL TIPO DI CONGEDO!', 'error');
+                return;
+            }
+            
+            if (!giorno || giorno < 1 || giorno > 31) {
+                mostraToast('⚠️ INSERISCI UN GIORNO VALIDO (1-31)!', 'error');
+                return;
+            }
+            
+            const giorniNelMese = getGiorniNelMese(appState.mese, appState.anno);
+            
+            if (giorno > giorniNelMese) {
+                mostraToast(`⚠️ IL MESE HA SOLO ${giorniNelMese} GIORNI!`, 'error');
+                return;
+            }
+            
+            appState.congedi.push({
+                tipo: tipo,
+                giorno: giorno
+            });
+            
+            document.getElementById('tipoCongedoInput').value = '';
+            document.getElementById('giornoCongedoInput').value = '';
+            
+            aggiornaListaCongedi();
+            applicaCongedoCalendario(giorno);
+            aggiornaRiepilogo();
+            aggiornaStatistiche();
+            mostraToast('✅ CONGEDO AGGIUNTO!');
+        }
+
+        function rimuoviCongedo(index) {
+            const giorno = appState.congedi[index].giorno;
+            appState.congedi.splice(index, 1);
+            aggiornaListaCongedi();
+            rimuoviCongedoCalendario(giorno);
+            aggiornaRiepilogo();
+            aggiornaStatistiche();
+            mostraToast('🗑️ CONGEDO RIMOSSO!');
+        }
+
+        function aggiornaListaCongedi() {
+            const container = document.getElementById('congedoList');
+            
+            if (appState.congedi.length === 0) {
+                container.innerHTML = '<p style="color: #7f8c8d; font-style: italic; text-align: center; padding: 20px;">Nessun congedo inserito</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            appState.congedi.forEach((congedo, index) => {
+                const item = document.createElement('div');
+                item.className = 'congedo-item';
+                item.innerHTML = `
+                    <span style="font-size: 1.1em;">
+                        <strong style="color: #9b59b6;">${congedo.tipo}</strong> - Giorno ${congedo.giorno}
+                    </span>
+                    <button class="tasto-reset" style="padding: 8px 15px; font-size: 0.9em;" 
+                            onclick="rimuoviCongedo(${index})">
+                        RIMUOVI
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function applicaCongedoCalendario(giorno) {
+            if (appState.calendarioStati[giorno]) {
+                turniTipo.forEach(turno => {
+                    appState.calendarioStati[giorno][turno] = 'congedo';
+                });
+                aggiornaVisualizzazioneCalendario();
+            }
+        }
+
+        function rimuoviCongedoCalendario(giorno) {
+            if (appState.calendarioStati[giorno]) {
+                turniTipo.forEach(turno => {
+                    if (appState.calendarioStati[giorno][turno] === 'congedo') {
+                        appState.calendarioStati[giorno][turno] = '';
+                    }
+                });
+                sincronizzaCalendario();
+            }
+        }
+
+        // ============ CALENDARIO ============
+        function generaCalendario() {
+            const giorniNelMese = getGiorniNelMese(appState.mese, appState.anno);
+            const primoGiorno = new Date(appState.anno, appState.mese - 1, 1).getDay();
+            const primoGiornoCorretto = primoGiorno === 0 ? 6 : primoGiorno - 1;
+            
+            appState.calendarioStati = {};
+            for (let i = 1; i <= giorniNelMese; i++) {
+                appState.calendarioStati[i] = {M: '', P: '', N: ''};
+            }
+            
+            const container = document.getElementById('calendarioContainer');
+            let html = '<table class="calendario-table"><thead><tr>';
+            html += '<th>LUN</th><th>MAR</th><th>MER</th><th>GIO</th><th>VEN</th><th>SAB</th><th>DOM</th>';
+            html += '</tr></thead><tbody>';
+            
+            let giornoCorrente = 1;
+            let settimanaIndex = 0;
+            
+            while (giornoCorrente <= giorniNelMese) {
+                html += '<tr>';
+                
+                for (let i = 0; i < 7; i++) {
+                    if (settimanaIndex === 0 && i < primoGiornoCorretto) {
+                        html += '<td class="empty-cell"></td>';
+                    } else if (giornoCorrente > giorniNelMese) {
+                        html += '<td class="empty-cell"></td>';
+                    } else {
+                        html += '<td class="day-cell">';
+                        html += `<div class="day-number">${giornoCorrente}</div>`;
+                        html += '<div class="turno-row">';
+                        
+                        turniTipo.forEach(turno => {
+                            html += `<div class="turno-cella" id="cal_${giornoCorrente}_${turno}" 
+                                    onclick="ciclaStatoTurno(${giornoCorrente}, '${turno}')"></div>`;
+                        });
+                        
+                        html += '</div></td>';
+                        giornoCorrente++;
+                    }
+                }
+                
+                html += '</tr>';
+                settimanaIndex++;
+            }
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            
+            appState.congedi.forEach(congedo => {
+                if (congedo.giorno <= giorniNelMese) {
+                    applicaCongedoCalendario(congedo.giorno);
+                }
+            });
+            
+            sincronizzaCalendario();
+            aggiornaStatistiche();
+        }
+
+        function sincronizzaCalendario() {
+            const giorniNelMese = getGiorniNelMese(appState.mese, appState.anno);
+            
+            for (let giorno = 1; giorno <= giorniNelMese; giorno++) {
+                turniTipo.forEach(turno => {
+                    if (appState.calendarioStati[giorno][turno] !== 'congedo') {
+                        appState.calendarioStati[giorno][turno] = '';
+                    }
+                });
+            }
+            
+            const fissiCheckboxes = document.querySelectorAll('#turniFissiTable input[type="checkbox"]:checked');
+            fissiCheckboxes.forEach(cb => {
+                const giornoSett = cb.getAttribute('data-giorno');
+                const turno = cb.getAttribute('data-turno');
+                const indexGiorno = giorniSettimana.indexOf(giornoSett);
+                
+                for (let giorno = 1; giorno <= giorniNelMese; giorno++) {
+                    const giornoSettimana = getGiornoSettimana(giorno, appState.mese, appState.anno);
+                    
+                    if (giornoSettimana === indexGiorno) {
+                        if (appState.calendarioStati[giorno][turno] !== 'congedo') {
+                            appState.calendarioStati[giorno][turno] = 'obbligato';
+                        }
+                    }
+                }
+            });
+            
+            appState.vetoSpecifici.forEach(veto => {
+                if (veto.giorno <= giorniNelMese) {
+                    if (appState.calendarioStati[veto.giorno][veto.turno] !== 'congedo') {
+                        appState.calendarioStati[veto.giorno][veto.turno] = 'veto';
+                    }
+                }
+            });
+            
+            aggiornaVisualizzazioneCalendario();
+            aggiornaRiepilogo();
+            aggiornaStatistiche();
+        }
+
+        function aggiornaVisualizzazioneCalendario() {
+            Object.keys(appState.calendarioStati).forEach(giorno => {
+                turniTipo.forEach(turno => {
+                    const cella = document.getElementById(`cal_${giorno}_${turno}`);
+                    if (cella) {
+                        const stato = appState.calendarioStati[giorno][turno];
+                        cella.className = 'turno-cella';
+                        cella.innerHTML = '';
+                        
+                        if (stato === 'obbligato') {
+                            cella.classList.add('obbligato');
+                            cella.innerHTML = '◆';
+                        } else if (stato === 'veto') {
+                            cella.classList.add('veto');
+                            cella.innerHTML = '⛔';
+                        } else if (stato === 'congedo') {
+                            cella.classList.add('congedo');
+                            cella.innerHTML = '🏖️';
+                        }
+                    }
+                });
+            });
+        }
+
+        function ciclaStatoTurno(giorno, turno) {
+            const isCongedo = appState.congedi.some(c => c.giorno === giorno);
+            if (isCongedo) {
+                mostraToast('⚠️ NON PUOI MODIFICARE GIORNI DI CONGEDO!', 'error');
+                return;
+            }
+            
+            const statoAttuale = appState.calendarioStati[giorno][turno];
+            let nuovoStato = '';
+            
+            switch (statoAttuale) {
+                case '':
+                    nuovoStato = 'obbligato';
+                    break;
+                case 'obbligato':
+                    nuovoStato = 'veto';
+                    break;
+                case 'veto':
+                    nuovoStato = '';
+                    break;
+            }
+            
+            appState.calendarioStati[giorno][turno] = nuovoStato;
+            aggiornaVisualizzazioneCalendario();
+            aggiornaRiepilogo();
+            aggiornaStatistiche();
+        }
+
+        // ============ RIEPILOGO ============
+        function aggiornaRiepilogo() {
+            let countFissi = 0;
+            let countVeto = 0;
+            
+            Object.keys(appState.calendarioStati).forEach(giorno => {
+                turniTipo.forEach(turno => {
+                    const stato = appState.calendarioStati[giorno][turno];
+                    if (stato === 'obbligato') countFissi++;
+                    if (stato === 'veto') countVeto++;
+                });
+            });
+            
+            document.getElementById('countFissi').textContent = countFissi;
+            document.getElementById('countVeto').textContent = countVeto;
+            document.getElementById('countCongedo').textContent = appState.congedi.length;
+        }
+
+        // ============ GESTIONE MESE/ANNO ============
+        function handleMeseChange() {
+            appState.mese = parseInt(document.getElementById('mese').value);
+            aggiornaVetoCalendario();
+            generaCalendario();
+            aggiornaStatistiche();
+        }
+
+        function handleAnnoChange() {
+            appState.anno = parseInt(document.getElementById('anno').value);
+            aggiornaVetoCalendario();
+            generaCalendario();
+            aggiornaStatistiche();
+        }
+
+        // ============ TASTI GRANDI FUNZIONALI ============
+        function generaCodice() {
+            const nomeMedico = document.getElementById('nomeMedico').value.trim();
+            
+            if (!nomeMedico) {
+                mostraToast('⚠️ INSERISCI PRIMA IL NOME DEL MEDICO!', 'error');
+                document.getElementById('nomeMedico').focus();
+                document.getElementById('nomeMedico').style.borderColor = '#e74c3c';
+                return;
+            }
+            
+            const now = new Date();
+            const mesiNomi = ['GENNAIO', 'FEBBRAIO', 'MARZO', 'APRILE', 'MAGGIO', 'GIUGNO', 
+                             'LUGLIO', 'AGOSTO', 'SETTEMBRE', 'OTTOBRE', 'NOVEMBRE', 'DICEMBRE'];
+            
+            // Testo per WhatsApp - USA I VALORI EDITATI
+            let testoWhatsApp = `🏥 DISPONIBILITÀ TURNI - ${nomeMedico.toUpperCase()}\n`;
+            testoWhatsApp += `📅 PERIODO: ${mesiNomi[appState.mese-1]} ${appState.anno}\n`;
+            testoWhatsApp += `📋 GENERATO IL: ${now.toLocaleDateString('it-IT')} ${now.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'})}\n\n`;
+            
+            // Statistiche - LEGGI DAGLI INPUT EDITABILI
+            const turniOrdinari = document.getElementById('turniOrdinariInput').value;
+            const turniCongedo = document.getElementById('turniCongedoInput').value;
+            const alpiMin = document.getElementById('alpiMinInput').value;
+            const alpiMax = document.getElementById('alpiMaxInput').value;
+            const alpiMinMax = `${alpiMin}-${alpiMax}`;
+            
+            testoWhatsApp += `📊 STATISTICHE TURNI:\n`;
+            testoWhatsApp += `   • Turni ordinari: ${turniOrdinari}\n`;
+            testoWhatsApp += `   • Turni congedo: ${turniCongedo}\n`;
+            testoWhatsApp += `   • Alpi (Min/Max): ${alpiMinMax}\n\n`;
+            
+            // Turni fissi
+            const turniFissi = [];
+            const fissiCheckboxes = document.querySelectorAll('#turniFissiTable input[type="checkbox"]:checked');
+            fissiCheckboxes.forEach(cb => {
+                turniFissi.push({
+                    giorno: cb.getAttribute('data-giorno'),
+                    turno: cb.getAttribute('data-turno')
+                });
+            });
+            
+            if (turniFissi.length > 0) {
+                testoWhatsApp += `◆ TURNI FISSI SETTIMANALI:\n`;
+                const perGiorno = {};
+                turniFissi.forEach(tf => {
+                    if (!perGiorno[tf.giorno]) perGiorno[tf.giorno] = [];
+                    perGiorno[tf.giorno].push(tf.turno);
+                });
+                
+                Object.keys(perGiorno).forEach(giorno => {
+                    const giorniLunghi = ['LUNEDÌ', 'MARTEDÌ', 'MERCOLEDÌ', 'GIOVEDÌ', 'VENERDÌ', 'SABATO', 'DOMENICA'];
+                    const index = giorniSettimana.indexOf(giorno);
+                    testoWhatsApp += `   • ${giorniLunghi[index]}: ${perGiorno[giorno].join(', ')}\n`;
+                });
+                testoWhatsApp += '\n';
+            }
+            
+            // Veto specifici
+            if (appState.vetoSpecifici.length > 0) {
+                testoWhatsApp += `⛔ VETO SPECIFICI:\n`;
+                appState.vetoSpecifici.forEach(veto => {
+                    const turnoTesto = veto.turno === 'M' ? 'MATTINA' : veto.turno === 'P' ? 'POMERIGGIO' : 'NOTTE';
+                    testoWhatsApp += `   • ${veto.nomeGiornoBreve} ${veto.giorno}: ${turnoTesto}\n`;
+                });
+                testoWhatsApp += '\n';
+            }
+            
+            // Congedi
+            if (appState.congedi.length > 0) {
+                testoWhatsApp += `🏖️ CONGEDI:\n`;
+                appState.congedi.forEach(congedo => {
+                    testoWhatsApp += `   • ${congedo.tipo} - Giorno ${congedo.giorno}\n`;
+                });
+                testoWhatsApp += '\n';
+            }
+            
+            // Salva il codice
+            codiceGenerato = testoWhatsApp;
+            
+            // Mostra nella textarea
+            document.getElementById('jsonOutput').value = testoWhatsApp;
+            
+            // Effetto visivo
+            document.getElementById('jsonOutput').style.borderColor = '#2ecc71';
+            setTimeout(() => document.getElementById('jsonOutput').style.borderColor = '#3498db', 1000);
+            
+            mostraToast('✅ CODICE GENERATO CON SUCCESSO!', 'success');
+        }
+
+        function copiaSuWhatsApp() {
+            if (!codiceGenerato) {
+                mostraToast('⚠️ GENERA PRIMA IL CODICE!', 'error');
+                return;
+            }
+            
+            // Copia negli appunti
+            navigator.clipboard.writeText(codiceGenerato).then(() => {
+                // Apre WhatsApp
+                const testoCodificato = encodeURIComponent(codiceGenerato);
+                const whatsappUrl = `https://wa.me/?text=${testoCodificato}`;
+                
+                // Mostra opzioni
+                if (confirm('📋 TESTO COPIATO NEGLI APPUNTI!\n\nVuoi aprire WhatsApp Web ora?\n\n(Si: Apri WhatsApp Web\nNo: Solo copia - apri WhatsApp manualmente e incolla)')) {
+                    window.open(whatsappUrl, '_blank');
+                    mostraToast('📱 WHATSAPP WEB APERTO! Incolla il testo', 'success');
+                } else {
+                    mostraToast('📋 TESTO COPIATO! Apri WhatsApp e incolla', 'success');
+                }
+            }).catch(err => {
+                // Fallback per browser vecchi
+                const textarea = document.getElementById('jsonOutput');
+                textarea.select();
+                document.execCommand('copy');
+                mostraToast('📋 TESTO COPIATO NEGLI APPUNTI!', 'success');
+            });
+        }
+
+        function inviaViaEmail() {
+            if (!codiceGenerato) {
+                mostraToast('⚠️ GENERA PRIMA IL CODICE!', 'error');
+                return;
+            }
+            
+            const nomeMedico = document.getElementById('nomeMedico').value.trim();
+            const mese = document.getElementById('mese').value;
+            const anno = document.getElementById('anno').value;
+            
+            const mesiNomi = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 
+                             'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+            
+            const subject = encodeURIComponent(`Disponibilità Turni ${nomeMedico} - ${mesiNomi[mese-1]} ${anno}`);
+            const body = encodeURIComponent(codiceGenerato);
+            const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
+            
+            window.open(mailtoLink, '_blank');
+            mostraToast('✉️ CLIENT EMAIL APERTO!', 'info');
+        }
+
+        function resetTutto() {
+            if (!confirm('⚠️⚠️⚠️ ATTENZIONE! ⚠️⚠️⚠️\n\nSei SICURO di voler CANCELLARE TUTTO?\n\nVerranno eliminati:\n• Nome medico\n• Turni fissi\n• Veto specifici\n• Congedi\n• Modifiche manuali\n\nQuesta azione NON può essere annullata!')) {
+                return;
+            }
+            
+            // Reset input
+            document.getElementById('nomeMedico').value = '';
+            document.getElementById('jsonOutput').value = '';
+            codiceGenerato = '';
+            
+            // Reset checkbox
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            
+            // Reset statistiche editabili
+            document.getElementById('turniOrdinariInput').value = 0;
+            document.getElementById('turniCongedoInput').value = 0;
+            document.getElementById('alpiMinInput').value = 0;
+            document.getElementById('alpiMaxInput').value = 0; // MODIFICATO: parte da 0
+            
+            // Reset state
+            appState.congedi = [];
+            appState.vetoSpecifici = [];
+            giornoSelezionatoVeto = null;
+            
+            // Reset selezione giorni
+            document.querySelectorAll('.veto-giorno-cell').forEach(b => b.classList.remove('selected'));
+            
+            // Aggiorna tutto
+            aggiornaListaCongedi();
+            aggiornaListaVeto();
+            aggiornaVetoCalendario();
+            generaCalendario();
+            aggiornaStatistiche();
+            
+            // Effetto visivo
+            document.body.style.backgroundColor = '#e74c3c';
+            setTimeout(() => document.body.style.backgroundColor = '', 500);
+            
+            mostraToast('🔄 TUTTO RESETTATO CON SUCCESSO!', 'warning');
+        }
+    </script>
+</body>
+</html>
