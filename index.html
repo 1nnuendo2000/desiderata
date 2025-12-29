@@ -1685,7 +1685,7 @@
             aggiornaStatistiche();
         }
 
-        // ============ RIEPILOGO ============
+         // ============ RIEPILOGO ============
         function aggiornaRiepilogo() {
             let countFissi = 0;
             let countVeto = 0;
@@ -1724,27 +1724,16 @@
             aggiornaStatistiche();
         }
 
-        // ============ TASTI GRANDI FUNZIONALI ============
-        function generaCodice() {
-            const nomeMedico = document.getElementById('nomeMedico').value.trim();
-            
-            if (!nomeMedico) {
-                mostraToast('⚠️ INSERISCI PRIMA IL NOME DEL MEDICO!', 'error');
-                document.getElementById('nomeMedico').focus();
-                document.getElementById('nomeMedico').style.borderColor = '#e74c3c';
-                return;
-            }
-            
-            const now = new Date();
+        // ============ FUNZIONI AUSILIARIE PER GENERAZIONE CODICE ============
+        function creaTestoWhatsApp(nomeMedico, now) {
             const mesiNomi = ['GENNAIO', 'FEBBRAIO', 'MARZO', 'APRILE', 'MAGGIO', 'GIUGNO', 
                              'LUGLIO', 'AGOSTO', 'SETTEMBRE', 'OTTOBRE', 'NOVEMBRE', 'DICEMBRE'];
             
-            // Testo per WhatsApp - USA I VALORI EDITATI
             let testoWhatsApp = `🏥 DISPONIBILITÀ TURNI - ${nomeMedico.toUpperCase()}\n`;
             testoWhatsApp += `📅 PERIODO: ${mesiNomi[appState.mese-1]} ${appState.anno}\n`;
             testoWhatsApp += `📋 GENERATO IL: ${now.toLocaleDateString('it-IT')} ${now.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'})}\n\n`;
             
-            // Statistiche - LEGGI DAGLI INPUT EDITABILI
+            // Statistiche
             const turniOrdinari = document.getElementById('turniOrdinariInput').value;
             const turniCongedo = document.getElementById('turniCongedoInput').value;
             const alpiMin = document.getElementById('alpiMinInput').value;
@@ -1801,17 +1790,155 @@
                 testoWhatsApp += '\n';
             }
             
+            // Calendario dettagliato
+            testoWhatsApp += `📅 CALENDARIO DETTAGLIATO - ${mesiNomi[appState.mese-1]} ${appState.anno}:\n`;
+            testoWhatsApp += `   (Legenda: ◆=Obbligato, ⛔=Veto, 🏖️=Congedo, ·=Disponibile)\n\n`;
+            
+            const giorniNelMese = getGiorniNelMese(appState.mese, appState.anno);
+            
+            for (let giorno = 1; giorno <= giorniNelMese; giorno++) {
+                const nomeGiornoBreve = getNomeGiornoBreve(giorno, appState.mese, appState.anno);
+                const statiTurni = appState.calendarioStati[giorno] || {M: '', P: '', N: ''};
+                
+                const simboloM = statiTurni['M'] === 'obbligato' ? '◆' : 
+                                statiTurni['M'] === 'veto' ? '⛔' : 
+                                statiTurni['M'] === 'congedo' ? '🏖️' : '·';
+                
+                const simboloP = statiTurni['P'] === 'obbligato' ? '◆' : 
+                                statiTurni['P'] === 'veto' ? '⛔' : 
+                                statiTurni['P'] === 'congedo' ? '🏖️' : '·';
+                
+                const simboloN = statiTurni['N'] === 'obbligato' ? '◆' : 
+                                statiTurni['N'] === 'veto' ? '⛔' : 
+                                statiTurni['N'] === 'congedo' ? '🏖️' : '·';
+                
+                const giornoFormattato = giorno < 10 ? `0${giorno}` : giorno;
+                testoWhatsApp += `   ${nomeGiornoBreve} ${giornoFormattato}: M[${simboloM}] P[${simboloP}] N[${simboloN}]\n`;
+                
+                if (nomeGiornoBreve === 'DOM' && giorno < giorniNelMese) {
+                    testoWhatsApp += `\n`;
+                }
+            }
+            
+            return testoWhatsApp;
+        }
+
+        function creaJSONPerNitro(nomeMedico, now) {
+            const giorniConfig = {};
+            const giorniNelMese = getGiorniNelMese(appState.mese, appState.anno);
+            
+            // Per ogni giorno del mese
+            for (let giorno = 1; giorno <= giorniNelMese; giorno++) {
+                const dataStr = `${appState.anno}-${String(appState.mese).padStart(2, '0')}-${String(giorno).padStart(2, '0')}`;
+                const dayConfig = {};
+                
+                // 1. Controlla se è un giorno di congedo
+                const congedoPerGiorno = appState.congedi.find(c => c.giorno === giorno);
+                if (congedoPerGiorno) {
+                    dayConfig.congedo = true;
+                    dayConfig.M = "veto";
+                    dayConfig.P = "veto";
+                    dayConfig.N = "veto";
+                    dayConfig.R = "veto";
+                } else {
+                    // 2. Controlla i turni obbligati/fissi per questo giorno
+                    const dayStates = appState.calendarioStati[giorno] || { M: '', P: '', N: '' };
+                    
+                    // 3. Controlla i turni settimanali fissi per questo giorno della settimana
+                    const nomeGiornoSettimana = getNomeGiornoSettimana(giorno, appState.mese, appState.anno);
+                    const fissiPerGiorno = document.querySelectorAll(
+                        `#turniFissiTable input[type="checkbox"][data-giorno="${nomeGiornoSettimana}"]:checked`
+                    );
+                    
+                    // 4. Combina: prima i fissi, poi le modifiche manuali
+                    if (fissiPerGiorno.length > 0) {
+                        fissiPerGiorno.forEach(cb => {
+                            const turno = cb.getAttribute('data-turno');
+                            dayConfig[turno] = "obbligo";
+                        });
+                    }
+                    
+                    // 5. Sovrascrivi con le modifiche manuali (veto)
+                    if (dayStates.M === 'veto') dayConfig.M = "veto";
+                    if (dayStates.P === 'veto') dayConfig.P = "veto";
+                    if (dayStates.N === 'veto') dayConfig.N = "veto";
+                    
+                    // 6. Sovrascrivi con le modifiche manuali (obbligato)
+                    if (dayStates.M === 'obbligato') dayConfig.M = "obbligo";
+                    if (dayStates.P === 'obbligato') dayConfig.P = "obbligo";
+                    if (dayStates.N === 'obbligato') dayConfig.N = "obbligo";
+                }
+                
+                // 7. Aggiungi veto specifici
+                appState.vetoSpecifici.forEach(veto => {
+                    if (veto.giorno === giorno) {
+                        dayConfig[veto.turno] = "veto";
+                    }
+                });
+                
+                // Solo se ci sono dati, aggiungi alla configurazione
+                if (Object.keys(dayConfig).length > 0) {
+                    giorniConfig[dataStr] = dayConfig;
+                }
+            }
+            
+            // Crea l'oggetto JSON compatibile con NITRO
+            return {
+                mese: appState.mese,
+                anno: appState.anno,
+                medico: nomeMedico,
+                timestamp: now.toISOString(),
+                configurazione: {
+                    [nomeMedico]: {
+                        giorni: giorniConfig,
+                        statistiche: {
+                            turniOrdinari: parseInt(document.getElementById('turniOrdinariInput').value) || 0,
+                            turniCongedo: parseInt(document.getElementById('turniCongedoInput').value) || 0,
+                            alpiMin: parseInt(document.getElementById('alpiMinInput').value) || 0,
+                            alpiMax: parseInt(document.getElementById('alpiMaxInput').value) || 0,
+                            vetoSpecifici: appState.vetoSpecifici.length,
+                            giorniCongedo: appState.congedi.length
+                        }
+                    }
+                }
+            };
+        }
+
+        // ============ TASTI GRANDI FUNZIONALI ============
+        function generaCodice() {
+            const nomeMedico = document.getElementById('nomeMedico').value.trim();
+            
+            if (!nomeMedico) {
+                mostraToast('⚠️ INSERISCI PRIMA IL NOME DEL MEDICO!', 'error');
+                document.getElementById('nomeMedico').focus();
+                document.getElementById('nomeMedico').style.borderColor = '#e74c3c';
+                return;
+            }
+            
+            const now = new Date();
+            
+            // ============ 1. TESTO PER WHATSAPP (LEGGIBILE) ============
+            let testoWhatsApp = creaTestoWhatsApp(nomeMedico, now);
+            
+            // ============ 2. GENERAZIONE JSON PER SISTEMA NITRO ============
+            const jsonConfig = creaJSONPerNitro(nomeMedico, now);
+            
+            const jsonString = JSON.stringify(jsonConfig, null, 2);
+            
+            // ============ 3. OUTPUT MULTIPLO ============
+            const outputFinale = `// ============ JSON PER SISTEMA NITRO (Importa con 📥 Importa) ============\n${jsonString}\n\n// ============ TESTO PER WHATSAPP/EMAIL ============\n${testoWhatsApp}`;
+            
             // Salva il codice
-            codiceGenerato = testoWhatsApp;
+            codiceGenerato = outputFinale;
             
             // Mostra nella textarea
-            document.getElementById('jsonOutput').value = testoWhatsApp;
+            document.getElementById('jsonOutput').value = outputFinale;
             
             // Effetto visivo
             document.getElementById('jsonOutput').style.borderColor = '#2ecc71';
             setTimeout(() => document.getElementById('jsonOutput').style.borderColor = '#3498db', 1000);
             
-            mostraToast('✅ CODICE GENERATO CON SUCCESSO!', 'success');
+            mostraToast('✅ CODICE GENERATO: JSON per NITRO + testo WhatsApp', 'success');
         }
 
         function copiaSuWhatsApp() {
